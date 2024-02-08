@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Detail{% endblock %}
+
+{% block content %}
+
+<style>
+  
+.custom-file-upload {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    margin-right: 10px;
+}
+.custom-file-upload input[type="file"] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+}
+#uploadInputLabel {
+    background-color: black;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+#uploadInputLabel:hover {
+    background-color: #333;
+}
+
+   
+.photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+
+.photo {
+    width: 30%; 
+    height: 200px; 
+    margin: 10px;
+    position: relative;
+    overflow: hidden; 
+}
+
+.photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    border-radius: 10px;
+}
+
+
+.photo + .photo {
+    margin-left: 10px;
+}
+.photo.selected {
+    border: 2px solid white; 
+}
+    
+@media (max-width: 768px) {
+    .photo {
+        width: 100%;
+    }
+}
+</style>
+
+<div class="container" style="background-color: rgba(0,0,0,0.5); border-radius: 20px; color: white;">
+    <h1 style="padding: 20px;">Task Details</h1>
+    <hr style="background-color: white; height: 2px;">
+
+
+    <!-- Task Details Section -->
+    <div id="taskDetailsSection" style="padding: 30px;">
+        <div>
+            <h3>{{ task.title }}</h3>
+            <p>Description: {{ task.description }}</p>
+            <p>Due Date: {{ task.due_date }}</p>
+            <p>Priority: {{ task.priority }}</p>
+            <p>Status: {% if task.is_complete %}Complete{% else %}Incomplete{% endif %}</p>
+            <p>Created At: {{ task.created_at }}</p>
+            <p>Last Updated At: {{ task.last_updated_at }}</p>
+        </div>
+
+        <!-- Update Task Button -->
+        <button id="updateTaskButton" style="background-color: black; color: white; border-radius: 10px;">Update Task Info</button>
+    </div>
+
+    <!-- Update Task Section (Initially Hidden) -->
+    <div id="updateTaskSection" style="display: none;">
+        <h2>Update Task</h2>
+        <form id="updateTaskForm" method="post" enctype="multipart/form-data" action="{% url 'update_task' task.id %}" style="width: 80%;">
+            {% csrf_token %}
+            <table style="width: 100%;">
+                <tr>
+                    <td><label for="title">Title:</label></td>
+                    <td><input type="text" id="title" name="title" value="{{ task.title }}" style="width: 100%;"></td>
+                </tr>
+                <tr>
+                    <td><label for="description">Description:</label></td>
+                    <td><textarea id="description" name="description" style="width: 100%;">{{ task.description }}</textarea></td>
+                </tr>
+                <tr>
+                    <td><label for="due_date">Due Date:</label></td>
+                    <td><input type="datetime-local" id="due_date" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" style="width: 100%;"></td>
+                </tr>
+                <tr>
+                    <td><label for="priority">Priority:</label></td>
+                    <td>
+                        <select id="priority" name="priority" style="width: 100%;">
+                            <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <button type="submit" style="background-color: black; color: white; border-radius: 10px; margin: 20px;">Update Task</button>
+        </form>
+    </div>
+    
+</div>
+
+<!-- Images Section -->
+<div class="container" style="margin: 10px; padding: 20px;">
+    <h2>Photos</h2>
+    <div id="imagesSection" class="photo-grid">
+        {% for photo in task.photo_set.all %}
+            <div class="photo" data-photo-id="{{ photo.id }}">
+                <img src="{{ photo.image.url }}" alt="Photo {{ photo.id }}">
+            </div>
+        {% endfor %}
+        {% if added_photos %}
+          <h2>Newly Added Photos</h2>
+          <div id="newlyAddedPhotos">
+            {% for photo in task.photo_set.all %}
+              <div class="photo" data-photo-id="{{ photo.id }}">
+                <img src="{{ photo.image.url }}" alt="Newly Added Photo">
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+    </div>
+    <div style="clear: both;"></div>
+    <div>
+        <br><br>
+        <button type="button" id="deleteSelectedButton" style="background-color: rgb(83, 13, 13); color: white; border-radius: 10px;">Delete Selected Photos</button>
+    </div>
+    <hr style="background-color: white; height: 2px;">
+    <div>
+        <br><br>
+        <h3>Add more images</h3>
+        <form id="addPhotoForm" enctype="multipart/form-data" action="{% url 'add_photo' task.id %}" method="post">
+            {% csrf_token %}
+            <div class="custom-file-upload">
+                <input type="file" accept="image/*" id="uploadInput" name="photo" multiple onchange="updateFileNames(this)">
+                <label for="uploadInput" id="uploadInputLabel">Choose Files</label>
+            </div>
+            <hr style="background-color: white; height: 2px;">
+            <button type="button" id="addPhotoButton" style="background-color: black; color: white; border-radius: 10px;">Add Photos</button>
+        </form>
+    </div>
+</div>
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Hide Update Task Section initially
+        $('#updateTaskSection').hide();
+
+        // Toggle Update Task Section visibility on button click
+        $('#updateTaskButton').click(function () {
+            $('#taskDetailsSection').toggle();
+            $('#updateTaskSection').toggle();
+        });
+
+
+        // Handle image click events for selection
+    $(document).on('click', '.photo', function () {
+        console.log('Clicked photo:', $(this).data('photo-id'));
+        $(this).toggleClass('selected');
+    });
+
+    // Handle delete selected photos button click
+$('#deleteSelectedButton').click(function () {
+    var selectedPhotos = $('.photo.selected').map(function () {
+        return $(this).data('photo-id');
+    }).get();
+
+    console.log('Selected photos:', selectedPhotos);
+
+    if (selectedPhotos.length === 0) {
+        alert('Please select at least one photo to delete.');
+        return;
+    }
+
+    if (confirm('Are you sure you want to delete selected photos?')) {
+        $.ajax({
+            url: '{% url 'delete_selected_photos' task.id %}',
+            type: 'POST',
+            data: { 'selected_photos': selectedPhotos, csrfmiddlewaretoken: '{{ csrf_token }}' },
+            // Remove square brackets [] from 'selected_photos[]'
+            traditional: true,
+            success: function () {
+                selectedPhotos.forEach(function (photoId) {
+                    $('.photo[data-photo-id="' + photoId + '"]').remove(); // Remove the photo div from DOM
+                });
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.error('Error:', errorThrown);
+            }
+        });
+    }
+});
+
+
+
+// Handle add photo button click
+$('#addPhotoButton').click(function () {
+    var formData = new FormData($('#addPhotoForm')[0]);
+    $.ajax({
+        url: '{% url 'add_photo' task.id %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function () {
+            // Reload the page after successfully adding photos
+            location.reload();
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            console.error('Error:', errorThrown);
+        }
+    });
+});
+
+
+    });
+
+    // Function to update the label text with selected file names
+    function updateFileNames(input) {
+        var fileNames = "";
+        for (var i = 0; i < input.files.length; i++) {
+            fileNames += input.files[i].name + ", ";
+        }
+        fileNames = fileNames.substring(0, fileNames.length - 2); // Remove trailing comma and space
+        document.getElementById("uploadInputLabel").innerText = fileNames;
+    }
+</script>
+{% endblock %}

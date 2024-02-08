@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="container" style="background-color: rgba(0, 0, 0, 0.5); border-radius: 20px; color: white; padding: 20px;">
+<div id="userInfoSection">
+    <h2>User Information</h2>
+    <p>Username: <span id="username">{{ user.username }}</span></p>
+    <p>First Name: <span id="firstName">{{ user.first_name }}</span></p>
+    <p>Last Name: <span id="lastName">{{ user.last_name }}</span></p>
+    <p>Email: <span id="email">{{ user.email }}</span></p>
+    <button id="updateInfoButton" onclick="toggleEdit()">Update Info</button>
+</div>
+
+<div id="editInfoSection" style="display: none;">
+    <h2>Edit User Information</h2>
+    <form id="updateInfoForm">
+        <!-- Input fields for editing information -->
+        <label for="newUsername">Username:</label>
+        <input type="text" id="Username" name="newUsername" value="{{user.username}}">
+
+        <label for="newFirstName">First Name:</label>
+        <input type="text" id="FirstName" name="newFirstName" value="{{user.first_name}}">
+
+        <label for="newLastName">Last Name:</label>
+        <input type="text" id="LastName" name="newLastName" value="{{user.last_name}}">
+
+        <label for="newEmail">Email:</label>
+        <input type="text" id="Email" name="newEmail" value="{{user.email}}">
+
+        <button type="button" onclick="saveChanges()">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    function toggleEdit() {
+        document.getElementById('userInfoSection').style.display = 'none';
+        document.getElementById('editInfoSection').style.display = 'block';
+    }
+
+    function saveChanges() {
+        // Retrieve values from input fields
+        var newUsername = document.getElementById('newUsername').value;
+        var newFirstName = document.getElementById('newFirstName').value;
+        var newLastName = document.getElementById('newLastName').value;
+        var newEmail = document.getElementById('newEmail').value;
+
+        // Update the display with the new values
+        document.getElementById('username').innerText = newUsername;
+        document.getElementById('firstName').innerText = newFirstName;
+        document.getElementById('lastName').innerText = newLastName;
+        document.getElementById('email').innerText = newEmail;
+
+        // Hide the edit section and show the user info section
+        document.getElementById('userInfoSection').style.display = 'block';
+        document.getElementById('editInfoSection').style.display = 'none';
+    }
+</script>
+
+  <!-- User List Section visible only for Admins -->
+  {% if user.is_staff %}
+    <h2>User List (Admin Only)</h2>
+    <ul>
+      {% for u in users %}
+        <li><a href="{% url 'view_user_profile' u.id %}">{{ u.username }}</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

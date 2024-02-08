@@ -1,0 +1,142 @@
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Task List{% endblock %}
+
+{% block content %}
+
+<style>
+    *{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+.container{
+    margin-top: 50px;
+    margin-bottom: 50px;
+    
+}
+.row{
+    background: #E2D1F9;
+    border-radius: 30px;
+    /*box-shadow: 12px 12px 22px rgb(160, 32, 4);*/
+}
+.btn1{
+    border: none;
+    outline: none;
+    height: 50px;
+    width: 100%;
+    background-color: black;
+    color: white;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.btn1:hover{
+    background: white;
+    border: 2px solid;
+    color: rgb(0, 0, 0);
+}
+img{
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+    
+}
+@media (max-width: 600px) {
+ img {
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-left-radius: 0px;
+}
+}
+.custom-input {
+background-color: black;
+color: white;
+border: 1px solid black; /* Add a border for visibility */
+padding: 10px; /* Adjust padding as needed */
+}
+
+</style>
+
+    <section class="form" my-4 mx-5>
+        <div class="container">
+            <div class="row gx-0 gy-0">
+                <div class="col-lg-5" style="padding: 0px;">
+                    <img src="{% static 'images/signup.jpg'%}" class="img-fluid" style="height: 100%;" alt="">
+                </div>
+                
+                <div class="col-lg-7 px-5 pt-0 pb-1">
+                    <h1 style="padding-top:15px; font-family: 'Fuggles', cursive; font-weight: bold;">SWAP-TaskManager</h1>
+                    <hr style="border: solid 3px green;">
+                    
+                    <h4 style="font-family: 'Roboto Condensed', sans-serif;">Sign Up</h4>
+                    
+                    <form method="post" action="/signup">
+                        {% csrf_token %}
+
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+
+
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control custom-input my-1 p-2" id="username" name="username" placeholder="Create A Username (use only letters and numbers)" Required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fname">First Name</label>
+                            <input type="text" class="form-control custom-input my-1 p-2" id="fname" name="fname" placeholder="Enter Your First Name" Required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lname">Last Name</label>
+                            <input type="text" class="form-control custom-input my-1 p-2" id="lname" name="lname" placeholder="Enter Your Last Name" Required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control custom-input my-1 p-2" id="email" name="email" placeholder="Enter Your Email Address" Required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pass1">Password</label>
+                            <input type="password" class="form-control custom-input my-1 p-2" id="pass1" name="pass1" placeholder="Create Your Password" oninput="checkPasswordMatch()" Required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pass2">Confirm Password</label>
+                            <input type="password" class="form-control custom-input my-1 p-2" id="pass2" name="pass2" placeholder="Confirm Your Password" oninput="checkPasswordMatch()" Required>
+                            <p id="passwordMatchMessage" style="color: red;"></p>
+                        </div>
+                        <p><input type="checkbox" required> I agree to the <a href="https://youtu.be/dQw4w9WgXcQ" style="color: black;" target="_blank">Terms and Conditions</a></p>
+                        
+                        <button type="submit" class="btn1 btn-success" id="submitButton" style="font-family: 'Roboto Condensed', sans-serif;">Sign Up</button>
+                       
+                        <p style="font-family: 'Roboto Condensed', sans-serif;">Already have an account? <a href="/login">Login</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function checkPasswordMatch() {
+            var password1 = document.getElementById('pass1').value;
+            var password2 = document.getElementById('pass2').value;
+            var messageElement = document.getElementById('passwordMatchMessage');
+            var submitButton = document.getElementById('submitButton');
+
+            if (password1 === password2) {
+                messageElement.textContent = null;
+                submitButton.removeAttribute('disabled');
+            } else {
+                messageElement.textContent = 'Passwords do not match!';
+                submitButton.setAttribute('disabled', 'disabled');
+            }
+        }
+    </script>
+
+
+
+    
+{% endblock %}
